@@ -3,10 +3,11 @@ import logging.config
 import os
 import time
 from threading import Thread
-import matplotlib.pyplot as plt
 from pythonjsonlogger import jsonlogger
 import psutil
 
+
+UPDATE_TIME = 60
 # Define custom log levels for different operations
 PROCESS_STARTED = 25
 PROCESS_ENDED = 30
@@ -111,7 +112,7 @@ def monitor_processes():
         logger.info(f'Current process count: {process_count}')  # General info about process count
 
         previous_processes = current_processes
-        time.sleep(60)
+        time.sleep(UPDATE_TIME)
 
 def monitor_file_changes(path):
     file_mod_times = {}
@@ -130,7 +131,7 @@ def monitor_file_changes(path):
                             file_mod_times[full_path] = mod_time
                         elif file_mod_times[full_path] != mod_time:
                             log_event('file_changed', f'File changed: {full_path}')
-                            logger.info(f'ALERT: File changed: {full_path}')  # Log alert separately if needed
+                            # logger.info(f'ALERT: File changed: {full_path}')
                             file_mod_times[full_path] = mod_time
                             file_change_count += 1
                     except FileNotFoundError:
@@ -140,42 +141,14 @@ def monitor_file_changes(path):
             logger.info(f'Total changes detected this cycle: {file_change_count}')  # General info about changes
             file_change_counts.append(file_change_count)
 
-        time.sleep(60)
+        time.sleep(UPDATE_TIME)
 
 def monitor_network_activity():
     while True:
         net_io = psutil.net_io_counters()
         log_event('network_activity', f'Sent bytes: {net_io.bytes_sent}, Received bytes: {net_io.bytes_recv}')
 
-        time.sleep(60)
-
-def plot_data():
-    plt.ion()
-
-    while True:
-        time.sleep(60)
-
-        plt.clf()
-
-        plt.subplot(2, 1, 1)
-        plt.plot(process_counts, label='Process Count', color='blue')
-        plt.title('Process Count Over Time')
-        plt.xlabel('Time (minutes)')
-        plt.ylabel('Number of Processes')
-        plt.legend()
-        plt.grid()
-
-        plt.subplot(2, 1, 2)
-        plt.plot(file_change_counts, label='File Change Count', color='red')
-        plt.title('File Change Count Over Time')
-        plt.xlabel('Time (minutes)')
-        plt.ylabel('Number of File Changes')
-        plt.legend()
-        plt.grid()
-
-        plt.tight_layout()
-
-        plt.pause(0.01)
+        time.sleep(UPDATE_TIME)
 
 if __name__ == "__main__":
     process_thread = Thread(target=monitor_processes)
@@ -186,4 +159,3 @@ if __name__ == "__main__":
     file_monitor_thread.start()
     network_monitor_thread.start()
 
-    plot_data()

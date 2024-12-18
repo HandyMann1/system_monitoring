@@ -50,29 +50,16 @@ def analyze_logs(df):
     # Подсчет количества логов по уровням
     level_counts = df['levelname'].value_counts()
 
-    # Подсчет количества событий по времени
-    df['asctime'] = pd.to_datetime(df['asctime'])
-    df.set_index('asctime', inplace=True)
-    time_counts = df.resample('H').size()  # Подсчет по часам
-
-    return level_counts, time_counts
+    return level_counts
 
 
-def plot_data(level_counts, time_counts):
+def plot_data(level_counts):
     # График количества событий по уровням логирования
     plt.figure(figsize=(12, 6))
 
-    plt.subplot(2, 1, 1)
     level_counts.plot(kind='bar', color='skyblue')
     plt.title('Количество событий по уровням логирования')
     plt.xlabel('Уровень логирования')
-    plt.ylabel('Количество')
-
-    # График количества событий по времени
-    plt.subplot(2, 1, 2)
-    time_counts.plot(color='orange')
-    plt.title('Количество событий по времени')
-    plt.xlabel('Время')
     plt.ylabel('Количество')
 
     plt.tight_layout()
@@ -83,7 +70,7 @@ if __name__ == "__main__":
     # Извлечение и анализ данных из лог-файла
     log_df = extract_log_data('system_audit.log')
 
-    level_counts, time_counts = analyze_logs(log_df)
+    level_counts = analyze_logs(log_df)
 
     # Визуализация данных
-    plot_data(level_counts, time_counts)
+    plot_data(level_counts)

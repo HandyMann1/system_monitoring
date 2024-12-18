@@ -35,7 +35,8 @@ level_label.grid(row=1, column=0, padx=5, pady=5)
 level_var = tk.StringVar()
 level_var.set('All')
 level_combobox = ttk.Combobox(filter_frame, textvariable=level_var,
-                              values=['All', 'INFO', 'WARNING', 'ERROR'])
+                              values=['All', 'INFO', 'WARNING', 'ERROR', 'FILE_CHANGED', 'NETWORK_ACTIVITY',
+                                      'PROCESS_STARTED', 'PROCESS_ENDED'])
 level_combobox.grid(row=1, column=1, padx=5, pady=5)
 level_combobox.bind('<Return>', lambda event=None: filter_logs())
 
