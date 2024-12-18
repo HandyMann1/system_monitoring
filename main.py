@@ -1,18 +1,45 @@
 import logging
+import logging.config
 import os
 import time
 from threading import Thread
 import matplotlib.pyplot as plt
+from pythonjsonlogger import jsonlogger
 
-logging.basicConfig(filename='system_audit.log', level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s')
+# Configure logging to output in JSON format
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "json": {
+            "format": "%(asctime)s %(levelname)s %(message)s",
+            "class": "pythonjsonlogger.jsonlogger.JsonFormatter",
+        },
+    },
+    "handlers": {
+        "file": {
+            "class": "logging.FileHandler",
+            "filename": "system_audit.log",
+            "formatter": "json",
+        },
+    },
+    "loggers": {
+        "system_audit_logger": {
+            "handlers": ["file"],
+            "level": "INFO",
+        },
+    },
+}
+
+logging.config.dictConfig(LOGGING)
+logger = logging.getLogger("system_audit_logger")
 
 process_counts = []
 file_change_counts = []
 
 
 def log_event(event):
-    logging.info(event)
+    logger.info(event)  # Log event using the configured logger
     print(event)
 
 
@@ -45,7 +72,6 @@ def monitor_file_changes(path):
                             file_change_count += 1
                     except FileNotFoundError:
                         log_event(f'File not found when checking modification time: {full_path}')
-
 
         if file_change_count > 0:
             log_event(f'Total changes detected this cycle: {file_change_count}')
