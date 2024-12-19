@@ -6,21 +6,19 @@ from threading import Thread
 from pythonjsonlogger import jsonlogger
 import psutil
 
-
 UPDATE_TIME = 60
-# Define custom log levels for different operations
+
 PROCESS_STARTED = 25
 PROCESS_ENDED = 30
 FILE_CHANGED = 35
 NETWORK_ACTIVITY = 40
 
-# Add custom levels to the logging module
 logging.addLevelName(PROCESS_STARTED, "PROCESS_STARTED")
 logging.addLevelName(PROCESS_ENDED, "PROCESS_ENDED")
 logging.addLevelName(FILE_CHANGED, "FILE_CHANGED")
 logging.addLevelName(NETWORK_ACTIVITY, "NETWORK_ACTIVITY")
 
-# Create a custom logger class to handle the new log levels
+
 class CustomLogger(logging.Logger):
     def __init__(self, name):
         super().__init__(name)
@@ -37,7 +35,7 @@ class CustomLogger(logging.Logger):
     def network_activity(self, message, *args, **kwargs):
         self.log(NETWORK_ACTIVITY, message, *args, **kwargs)
 
-# Configure logging with multiple levels and handlers
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -53,9 +51,9 @@ LOGGING = {
     "handlers": {
         "file_info": {
             "class": "logging.FileHandler",
-            "filename": "system_audit.log",  # Change filename here
-            "formatter": "json",               # Use JSON formatter for this handler
-            "level": "DEBUG",                  # Set level to DEBUG to capture all logs including custom levels
+            "filename": "system_audit.log",
+            "formatter": "json",
+            "level": "DEBUG",
         },
         "console_warning": {
             "class": "logging.StreamHandler",
@@ -64,16 +62,13 @@ LOGGING = {
         },
     },
     "loggers": {
-        # Set logger level to DEBUG to capture all custom levels and INFO logs
         "system_audit_logger": {
             "handlers": ["file_info", "console_warning"],
-            # Set level to DEBUG; this will include all custom levels above INFO
             "level": "DEBUG",
         },
     },
 }
 
-# Set the custom logger class before creating the logger instance
 logging.setLoggerClass(CustomLogger)
 logging.config.dictConfig(LOGGING)
 
@@ -81,6 +76,7 @@ logger = logging.getLogger("system_audit_logger")
 
 process_counts = []
 file_change_counts = []
+
 
 def log_event(event_type, message):
     if event_type == 'process_started':
@@ -91,6 +87,7 @@ def log_event(event_type, message):
         logger.file_changed(message)
     elif event_type == 'network_activity':
         logger.network_activity(message)
+
 
 def monitor_processes():
     previous_processes = {p.pid: p.info for p in psutil.process_iter(['pid', 'name'])}
@@ -109,10 +106,10 @@ def monitor_processes():
         process_count = len(current_processes)
         process_counts.append(process_count)
 
-        logger.info(f'Current process count: {process_count}')  # General info about process count
-
+        logger.info(f'Current process count: {process_count}')
         previous_processes = current_processes
         time.sleep(UPDATE_TIME)
+
 
 def monitor_file_changes(path):
     file_mod_times = {}
@@ -138,10 +135,11 @@ def monitor_file_changes(path):
                         log_event('file_changed', f'File not found when checking modification time: {full_path}')
 
         if file_change_count > 0:
-            logger.info(f'Total changes detected this cycle: {file_change_count}')  # General info about changes
+            logger.info(f'Total changes detected this cycle: {file_change_count}')
             file_change_counts.append(file_change_count)
 
         time.sleep(UPDATE_TIME)
+
 
 def monitor_network_activity():
     while True:
@@ -149,6 +147,7 @@ def monitor_network_activity():
         log_event('network_activity', f'Sent bytes: {net_io.bytes_sent}, Received bytes: {net_io.bytes_recv}')
 
         time.sleep(UPDATE_TIME)
+
 
 if __name__ == "__main__":
     process_thread = Thread(target=monitor_processes)
@@ -158,4 +157,3 @@ if __name__ == "__main__":
     process_thread.start()
     file_monitor_thread.start()
     network_monitor_thread.start()
-
